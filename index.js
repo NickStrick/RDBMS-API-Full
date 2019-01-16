@@ -35,6 +35,20 @@ server.get('/api/cohorts/:id', (req, res) => {
     });
 });
 
+server.get('/api/cohorts/:id/students', (req, res) => {
+    let {id} = req.params;
+
+    db('students')
+      .where({ cohort_id: id })
+      .then(student => {
+        if (student) {
+          res.status(200).json(student);
+        } else {
+          res.status(404).json({ message: 'students not found' });
+        }
+      });
+  });
+
 
 server.post('/api/cohorts', (req, res) => {
   
