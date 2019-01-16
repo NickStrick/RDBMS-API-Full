@@ -14,7 +14,6 @@ server.get('/', (req, res) => {
   res.send('api working');
 });
 
-
 server.get('/api/cohorts', (req, res) => {
   db('cohorts')
     .then(cohorts => {
@@ -46,9 +45,8 @@ server.get('/api/cohorts/:id/students', (req, res) => {
         } else {
           res.status(404).json({ message: 'students not found' });
         }
-      });
-  });
-
+    });
+});
 
 server.post('/api/cohorts', (req, res) => {
   
@@ -63,7 +61,6 @@ server.post('/api/cohorts', (req, res) => {
     })
     .catch(err => res.status(500).json(err));
 });
-
 
 server.delete('/api/cohorts/:id', (req, res) => {
   db('cohorts')
@@ -89,6 +86,78 @@ server.put('/api/cohorts/:id', (req, res) => {
       }
     })
     .catch(err => res.status(500).json(err));
+});
+
+
+//students spi requests -----------------------
+server.get('/api/students', (req, res) => {
+    db('students')
+      .then(students => {
+        res.status(200).json(students);
+      })
+      .catch(err => res.status(500).json(err));
+});
+
+server.get('/api/students/:id', (req, res) => {
+    db('students')
+      .where({ id: req.params.id })
+      .then(student => {
+        if (student) {
+            console.log(student[0])
+            db('cohorts')
+            .where({ id: student[0].cohort_id})
+            .then(cohort => {
+                console.log(cohort[0])
+                res.status(200).json([{id:student[0].id, name:student[0].name, cohort:cohort[0].name}]);
+                res.end();
+            })
+            // .catch(res.status(404).json({ message: 'cohort not found' }))
+            ;
+          
+        } else {
+          res.status(404).json({ message: 'student not found' });
+        }
+      });
+});
+
+server.post('/api/students', (req, res) => {
+
+    db('students')
+        .insert(req.body)
+        .then(ids => {
+        db('students')
+            .where({ id: ids[0] })
+            .then(student => {
+            res.status(201).json(student);
+            });
+        })
+        .catch(err => res.status(500).json(err));
+});
+
+server.delete('/api/students/:id', (req, res) => {
+    db('students')
+      .where({ id: req.params.id })
+      .del()
+      .then(count => {
+        res.status(200).json(count);
+      })
+      .catch(err => res.status(500).json(err));
+  });
+
+server.put('/api/students/:id', (req, res) => {
+    const changes = req.body;
+  
+    db('students')
+      .where({ id: req.params.id })
+      .update(changes)
+      .then(count => {
+        if (count) {
+          res.status(200).json(count);
+        } else {
+          res.status(404).json({ message: 'student not found' });
+        }
+      })
+      .catch(err => res.status(500).json(err));
 });
 
 
